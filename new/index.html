@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Дорожный проект - Дашборд</title>
+  <style>
+    :root{
+      --bg-primary:#f8fafc;
+      --bg-card:#ffffff;
+      --text-primary:#1e293b;
+      --text-secondary:#64748b;
+      --border-color:#e2e8f0;
+      --shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+      --shadow-lg:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);
+
+      --color-layer1:#667eea;
+      --color-layer2:#f59e0b;
+      --color-layer3:#10b981;
+      --color-baseline:#ef4444;
+
+      --color-profit:#8b5cf6;
+      --color-inflow:#22c55e;
+      --color-outflow:#ef4444;
+      --color-revenue:#0ea5e9;
+      --color-capital:#f97316;
+      --color-payback:#22c55e;
+    }
+    [data-theme="dark"]{
+      --bg-primary:#0f172a;
+      --bg-card:#1e293b;
+      --text-primary:#f1f5f9;
+      --text-secondary:#94a3b8;
+      --border-color:#334155;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+      background:var(--bg-primary);
+      color:var(--text-primary);
+      line-height:1.6;
+      transition:background .3s,color .3s;
+    }
+    .container{max-width:1400px;margin:0 auto;padding:20px}
+    .header{
+      background:var(--bg-card);
+      padding:30px;
+      border-radius:16px;
+      margin-bottom:24px;
+      box-shadow:var(--shadow);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:20px;
+    }
+    .header-content h1{font-size:32px;font-weight:700;margin-bottom:8px}
+    .header-content p{color:var(--text-secondary);font-size:16px}
+    .theme-toggle{
+      background:var(--bg-primary);
+      border:2px solid var(--border-color);
+      border-radius:50px;
+      padding:8px 20px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:600;
+      color:var(--text-primary);
+      transition:all .3s;
+      user-select:none;
+    }
+    .theme-toggle:hover{transform:scale(1.05)}
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:20px;
+      margin-bottom:24px;
+    }
+    .kpi-card{
+      background:var(--bg-card);
+      padding:24px;
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      transition:transform .3s,box-shadow .3s;
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+    .kpi-card h3{
+      font-size:14px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      color:var(--text-secondary);
+      margin-bottom:12px;
+    }
+    .kpi-card .value{
+      font-size:36px;
+      font-weight:800;
+      color:var(--text-primary);
+      letter-spacing:.2px;
+    }
+    .kpi-card .unit{
+      font-size:18px;
+      color:var(--text-secondary);
+      margin-left:6px;
+      font-weight:600;
+    }
+    .kpi-card .subtitle{
+      font-size:14px;
+      color:var(--text-secondary);
+      margin-top:10px;
+      max-width:44ch;
+    }
+    .kpi-card.tint::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg,var(--tintA),var(--tintB));
+      opacity:.14;
+      pointer-events:none;
+    }
+    .kpi-card.badge{
+      color:#fff;
+      background:linear-gradient(135deg,var(--tintA),var(--tintB));
+    }
+    .kpi-card.badge h3,
+    .kpi-card.badge .value,
+    .kpi-card.badge .unit,
+    .kpi-card.badge .subtitle{color:#fff}
+    .chart-section{
+      background:var(--bg-card);
+      padding:30px;
+      border-radius:16px;
+      margin-bottom:24px;
+      box-shadow:var(--shadow);
+    }
+    .chart-section h2{font-size:24px;font-weight:800;margin-bottom:20px}
+    .chart-wrapper{position:relative;height:520px;margin-bottom:10px}
+    .legend{
+      display:flex;
+      justify-content:center;
+      gap:30px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+    .legend-item{display:flex;align-items:center;gap:10px}
+    .legend-color{width:24px;height:24px;border-radius:4px}
+    .legend-text{font-size:14px;font-weight:600;color:var(--text-primary)}
+    canvas{max-width:100%}
+    @media (max-width:768px){
+      .header{text-align:center}
+      .header-content h1{font-size:24px}
+      .kpi-grid{grid-template-columns:1fr}
+      .chart-wrapper{height:440px}
+      .legend{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-content">
+        <h1>Дорожный проект - Дашборд</h1>
+        <p>Диаграмма расстояние-время и финансовая аналитика</p>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Сменить тему</button>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="chart-section">
+      <h2>График прогресса работ - Километры по месяцам</h2>
+      <div class="chart-wrapper">
+        <canvas id="roadChart"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-layer1);"></div>
+          <div class="legend-text">Слой 1 — Подготовка основания</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-layer2);"></div>
+          <div class="legend-text">Слой 2 — Бетонные изделия</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-layer3);"></div>
+          <div class="legend-text">Слой 3 — Асфальтирование</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-baseline);"></div>
+          <div class="legend-text">Целевая линия (23 км)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <h2>Денежный поток проекта</h2>
+      <div class="chart-wrapper">
+        <canvas id="cashFlowChart"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-inflow);"></div>
+          <div class="legend-text">Поступления (In)</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: var(--color-outflow);"></div>
+          <div class="legend-text">Расходы (Out)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    const data = {
+      months: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек', 'Янв'],
+      layer1: [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 2],
+      layer2: [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4, 3],
+      layer3: [0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 3, 2, 6]
+    };
+
+    const cashFlowData = {
+      dates: [
+        '10.01.2026','30.01.2026','28.02.2026','30.03.2026','31.03.2026','29.04.2026','30.04.2026','30.05.2026','31.05.2026','29.06.2026',
+        '30.06.2026','30.07.2026','31.07.2026','30.08.2026','31.08.2026','29.09.2026','30.09.2026','30.10.2026','31.10.2026','29.11.2026',
+        '30.11.2026','30.12.2026','31.12.2026','30.01.2027','31.01.2027','27.02.2027','28.02.2027'
+      ],
+      inflow: [
+        400000,0,0,0,219258,0,359583,0,359583,0,
+        414910,0,523514,0,523514,0,719167,0,719167,0,
+        914819,0,914819,0,991702,0,1210379
+      ],
+      outflow: [
+        0,37622,111473,174914,24231,247857,42273,282139,42273,352649,
+        54248,355990,69529,426112,79529,489033,112982,559155,124546,622077,
+        159563,730598,159563,846711,497900,387552,1279895
+      ],
+      balance: [
+        400000,362378,250904,75990,271017,23160,340471,58331,375642,22992,
+        383655,27665,481650,55538,499524,10490,616675,57520,652140,30063,
+        785319,54721,809977,-36734,457067,69516,0
+      ]
+    };
+
+    function calculateCumulative(values){
+      const cum=[]; let total=0;
+      for(let i=0;i<values.length;i++){ total+=values[i]; cum.push(total); }
+      return cum;
+    }
+
+    const layer1Cumulative = calculateCumulative(data.layer1);
+    const layer2Cumulative = calculateCumulative(data.layer2);
+    const layer3Cumulative = calculateCumulative(data.layer3);
+
+    function loadTheme(){
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    function toggleTheme(){
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateCharts();
+    }
+
+    function formatCurrency(value){
+      const sign = value < 0 ? '-' : '';
+      const abs = Math.abs(value);
+      return sign + '$' + abs.toLocaleString('en-US');
+    }
+
+    function createKPIs(){
+      // Use fixed value as requested for revenue (not computed) and other fixed KPI values
+      const kpis = [
+        { title: 'ОБЩАЯ ВЫРУЧКА', value: '$8,270,415', unit: '', subtitle: 'Сумма «Поступление от заказчика»', class: 'tint', tintA: 'var(--color-revenue)', tintB: 'rgba(14,165,233,0.2)' },
+        { title: 'Общая протяженность', value: '23', unit: 'км', subtitle: 'Длина дороги', class: 'tint', tintA: 'var(--color-layer1)', tintB: 'rgba(102,126,234,0.2)' },
+        { title: 'Длительность', value: '13', unit: 'месяцев', subtitle: 'Период реализации', class: 'tint', tintA: 'var(--color-layer3)', tintB: 'rgba(16,185,129,0.2)' },
+        { title: 'СТАРТОВЫЙ КАПИТАЛ', value: '$400,000', unit: '', subtitle: '', class: 'tint', tintA: 'var(--color-capital)', tintB: 'rgba(249,115,22,0.2)' },
+        { title: 'Срок возврата инвестору', value: '13', unit: 'месяцев', subtitle: 'Инвестор возвращает $400,000', class: 'tint', tintA: 'var(--color-payback)', tintB: 'rgba(34,197,94,0.2)' },
+        { title: 'Прибыль проекта', value: '$1,000,000', unit: '', subtitle: 'Чистая прибыль', class: 'badge', tintA: 'var(--color-profit)', tintB: '#a78bfa' }
+      ];
+
+      const grid = document.getElementById('kpiGrid');
+      grid.innerHTML = kpis.map(kpi => `
+        <div class="kpi-card ${kpi.class}" style="--tintA:${kpi.tintA};--tintB:${kpi.tintB};">
+          <h3>${kpi.title}</h3>
+          <div>
+            <span class="value">${kpi.value}</span>
+            <span class="unit">${kpi.unit || ''}</span>
+          </div>
+          ${kpi.subtitle ? `<div class="subtitle">${kpi.subtitle}</div>` : ``}
+        </div>
+      `).join('');
+    }
+
+    let roadChart, cashFlowChart;
+
+    function getColors(){
+      const style = getComputedStyle(document.documentElement);
+      return {
+        layer1: style.getPropertyValue('--color-layer1').trim(),
+        layer2: style.getPropertyValue('--color-layer2').trim(),
+        layer3: style.getPropertyValue('--color-layer3').trim(),
+        baseline: style.getPropertyValue('--color-baseline').trim(),
+        inflow: style.getPropertyValue('--color-inflow').trim(),
+        outflow: style.getPropertyValue('--color-outflow').trim(),
+        textPrimary: style.getPropertyValue('--text-primary').trim(),
+        textSecondary: style.getPropertyValue('--text-secondary').trim(),
+        borderColor: style.getPropertyValue('--border-color').trim()
+      };
+    }
+
+    function createRoadChart(){
+      const ctx = document.getElementById('roadChart').getContext('2d');
+      const colors = getColors();
+      const targetLine = Array(data.months.length).fill(23);
+
+      roadChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.months,
+          datasets: [
+            {
+              label: 'Целевая линия (23 км)',
+              data: targetLine,
+              borderColor: colors.baseline,
+              backgroundColor: 'transparent',
+              borderWidth: 3,
+              borderDash: [10, 5],
+              pointRadius: 0,
+              fill: false,
+              order: 0
+            },
+            {
+              label: 'Слой 1 — Подготовка основания',
+              data: layer1Cumulative,
+              borderColor: colors.layer1,
+              backgroundColor: colors.layer1 + '20',
+              borderWidth: 3,
+              fill: true,
+              tension: 0,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: colors.layer1,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              order: 1
+            },
+            {
+              label: 'Слой 2 — Бетонные изделия',
+              data: layer2Cumulative,
+              borderColor: colors.layer2,
+              backgroundColor: colors.layer2 + '20',
+              borderWidth: 3,
+              fill: true,
+              tension: 0,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: colors.layer2,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              order: 2
+            },
+            {
+              label: 'Слой 3 — Асфальтирование',
+              data: layer3Cumulative,
+              borderColor: colors.layer3,
+              backgroundColor: colors.layer3 + '20',
+              borderWidth: 3,
+              fill: true,
+              tension: 0,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: colors.layer3,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              order: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                title: (ctx) => 'Месяц: ' + data.months[ctx[0].dataIndex],
+                label: (c) => {
+                  if (c.datasetIndex === 0) return 'Целевая линия: 23 км';
+                  const idx = c.dataIndex;
+                  let mv = 0;
+                  if (c.datasetIndex === 1) mv = data.layer1[idx];
+                  else if (c.datasetIndex === 2) mv = data.layer2[idx];
+                  else if (c.datasetIndex === 3) mv = data.layer3[idx];
+                  return [c.dataset.label, '  За месяц: ' + mv + ' км', '  Накоплено: ' + c.parsed.y + ' км'];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Время (Месяцы)', font: { size: 14, weight: '600' }, color: colors.textPrimary },
+              ticks: { color: colors.textSecondary, font: { size: 12 } },
+              grid: { color: colors.borderColor }
+            },
+            y: {
+              beginAtZero: true,
+              max: 25,
+              title: { display: true, text: 'Расстояние (Километры)', font: { size: 14, weight: '600' }, color: colors.textPrimary },
+              ticks: { color: colors.textSecondary, font: { size: 12 }, callback: (v) => v + ' км' },
+              grid: { color: colors.borderColor }
+            }
+          }
+        }
+      });
+    }
+
+    function createCashFlowChart(){
+      const ctx = document.getElementById('cashFlowChart').getContext('2d');
+      const colors = getColors();
+
+      cashFlowChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: cashFlowData.dates,
+          datasets: [
+            {
+              label: 'Поступления (In)',
+              data: cashFlowData.inflow,
+              backgroundColor: colors.inflow + 'cc',
+              borderColor: colors.inflow,
+              borderWidth: 2,
+              stack: 'cash',
+              borderRadius: 6
+            },
+            {
+              label: 'Расходы (Out)',
+              data: cashFlowData.outflow,
+              backgroundColor: colors.outflow + 'cc',
+              borderColor: colors.outflow,
+              borderWidth: 2,
+              stack: 'cash',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                title: (ctx) => 'Дата: ' + cashFlowData.dates[ctx[0].dataIndex],
+                label: (c) => {
+                  const i = c.dataIndex;
+                  if (c.dataset.label === 'Поступления (In)') return 'Поступления: ' + formatCurrency(cashFlowData.inflow[i]);
+                  return 'Расходы: ' + formatCurrency(cashFlowData.outflow[i]);
+                },
+                afterBody: (ctx) => {
+                  const i = ctx[0].dataIndex;
+                  return ['Баланс: ' + formatCurrency(cashFlowData.balance[i])];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Дата', font: { size: 14, weight: '600' }, color: colors.textPrimary },
+              ticks: { color: colors.textSecondary, font: { size: 10 }, maxRotation: 45, minRotation: 45 },
+              grid: { color: colors.borderColor }
+            },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Поступления / Расходы ($)', font: { size: 14, weight: '600' }, color: colors.textPrimary },
+              ticks: { color: colors.textSecondary, callback: (v) => '$' + Number(v).toLocaleString('en-US') },
+              grid: { color: colors.borderColor }
+            }
+          }
+        }
+      });
+    }
+
+    function destroyCharts(){
+      if (roadChart) { roadChart.destroy(); roadChart = null; }
+      if (cashFlowChart) { cashFlowChart.destroy(); cashFlowChart = null; }
+    }
+    function updateCharts(){
+      destroyCharts();
+      createRoadChart();
+      createCashFlowChart();
+    }
+
+    loadTheme();
+    createKPIs();
+    updateCharts();
+  </script>
+</body>
+</html>
