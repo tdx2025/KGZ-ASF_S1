@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Дорожный проект — Дашборд</title>
+  <style>
+    :root{
+      --bg0:#0b1220;
+      --bg1:#0f172a;
+      --card:#111c2f;
+      --text:#e6eefc;
+      --muted:#9fb0c8;
+      --border:rgba(255,255,255,.08);
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+
+      --c1:#55d7ff;
+      --c2:#6bffb3;
+      --c3:#ffd36a;
+      --cBase:#e6eefc;
+
+      --cIn:#22c55e;
+      --cOut:#ef4444;
+      --cBal:#3b82f6;
+    }
+    [data-theme="light"]{
+      --bg0:#f5f8ff;
+      --bg1:#f8fafc;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#5b6b82;
+      --border:rgba(15,23,42,.10);
+      --shadow:0 18px 50px rgba(15,23,42,.10);
+      --cBase:#0f172a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,"Noto Sans","Liberation Sans",sans-serif;
+      background:radial-gradient(1200px 520px at 18% 8%, rgba(85,215,255,.14), transparent 62%),
+                 radial-gradient(900px 520px at 72% 10%, rgba(255,211,106,.10), transparent 60%),
+                 radial-gradient(900px 520px at 55% 0%, rgba(107,255,179,.10), transparent 60%),
+                 linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      min-height:100vh;
+      transition:background .25s,color .25s;
+    }
+    .wrap{max-width:1400px;margin:0 auto;padding:18px 18px 28px}
+    .top{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px 18px 16px;
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      backdrop-filter: blur(10px);
+    }
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(85,215,255,.85), rgba(107,255,179,.75));
+      box-shadow:0 10px 24px rgba(85,215,255,.18);
+      flex:0 0 auto;
+    }
+    .ttl{min-width:0}
+    .ttl h1{
+      font-size:22px;line-height:1.15;font-weight:950;letter-spacing:.2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .ttl p{color:var(--muted);font-size:14px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .actions{display:flex;gap:10px;flex:0 0 auto}
+    .btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      font-weight:850;
+      font-size:13px;
+      cursor:pointer;
+      transition:transform .15s, background .15s;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+
+    .kpis{grid-column:1 / -1;display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+    .kpi{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 16px 14px;
+      box-shadow:0 12px 36px rgba(0,0,0,.25);
+      min-height:110px;
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi:before{
+      content:"";
+      position:absolute;inset:-2px;
+      background:radial-gradient(450px 160px at 15% 10%, rgba(var(--glow),.18), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .kpi .t{font-size:12px;letter-spacing:.9px;font-weight:900;text-transform:uppercase;color:var(--muted)}
+    .kpi .v{font-size:34px;font-weight:950;letter-spacing:.2px;margin-top:10px}
+    .kpi .s{font-size:13px;color:var(--muted);margin-top:8px;max-width:44ch}
+    .kpi.badge{
+      background:linear-gradient(135deg, rgba(167,139,250,.95), rgba(149,120,255,.78));
+      border-color:rgba(255,255,255,.16);
+    }
+    .kpi.badge .t,.kpi.badge .s{color:rgba(255,255,255,.92)}
+    .kpi.badge .v{color:#fff}
+    .kpi.badge:before{opacity:.35}
+
+    .card{
+      grid-column:1 / -1;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .card-h{
+      padding:16px 16px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .card-h .hgroup h2{font-size:18px;font-weight:950;letter-spacing:.2px}
+    .card-h .hgroup p{color:var(--muted);font-size:13px;margin-top:6px}
+    .card-b{padding:14px 14px 16px}
+
+    .road3{display:grid;grid-template-columns:1fr;gap:12px}
+    .lane{
+      border:1px solid var(--border);
+      border-radius:18px;
+      overflow:hidden;
+      background:rgba(255,255,255,.04);
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+    }
+    .lane-h{
+      padding:12px 12px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .lane-title{
+      display:flex;align-items:center;gap:10px;min-width:0;
+      font-weight:950;font-size:13px;letter-spacing:.2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .lane-dot{
+      width:10px;height:10px;border-radius:999px;background:var(--laneColor);
+      box-shadow:0 0 0 7px rgba(var(--laneRgb),.12);
+      flex:0 0 auto;
+    }
+    .lane-meta{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
+      white-space:nowrap;
+    }
+    .chartbox{position:relative;height:230px;padding:10px 10px 14px}
+
+    .legendRow{
+      display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-end;
+      margin-top:10px;color:var(--muted);font-size:12px;font-weight:850;
+    }
+    .legendRow .litem{display:flex;align-items:center;gap:8px}
+    .sw{width:14px;height:10px;border-radius:3px;background:var(--sw);border:1px solid rgba(255,255,255,.15)}
+    .sw.line{height:3px;border-radius:999px}
+
+    .note{
+      margin-top:12px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:13px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .note strong{color:var(--text)}
+    .note .ico{
+      width:22px;height:22px;border-radius:8px;
+      background:rgba(85,215,255,.16);
+      border:1px solid rgba(85,215,255,.22);
+      flex:0 0 auto;
+      display:grid;place-items:center;
+      font-weight:950;color:rgba(85,215,255,.95);
+      margin-top:1px;
+    }
+
+    .two{
+      grid-column:1 / -1;
+      display:grid;
+      grid-template-columns:1.25fr .75fr;
+      gap:14px;
+    }
+    .card.small .chartbox{height:360px}
+
+    @media (max-width:1100px){
+      .kpis{grid-template-columns:repeat(3,1fr)}
+      .two{grid-template-columns:1fr}
+    }
+    @media (max-width:700px){
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .ttl h1{font-size:18px}
+      .ttl p{display:none}
+      .chartbox{height:250px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="ttl">
+          <h1>План-график дорожных работ — 3 слоя (ступенчатый прогресс)</h1>
+          <p>Данные: помесячный план в км по этапам • Срок: январь → январь (13 месяцев) • Длина: 23 км</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="toggleMode">🌓 Сменить тему</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="kpis" id="kpiGrid"></div>
+
+      <div class="card">
+        <div class="card-h">
+          <div class="hgroup">
+            <h2>График прогресса работ — 3 слоя (ступенчатый прогресс)</h2>
+            <p>Для удобства: X-снизу = период (месяцы), X-сверху = накопленные км (по этапу), Y = км (0 → 23)</p>
+          </div>
+        </div>
+        <div class="card-b">
+          <div class="road3">
+            <div class="lane" style="--laneColor: var(--c1); --laneRgb: 85,215,255;">
+              <div class="lane-h">
+                <div class="lane-title"><span class="lane-dot"></span>Этап 1 — Подготовка основания</div>
+                <div class="lane-meta">Всего: 23 км</div>
+              </div>
+              <div class="chartbox"><canvas id="road1"></canvas></div>
+            </div>
+
+            <div class="lane" style="--laneColor: var(--c2); --laneRgb: 107,255,179;">
+              <div class="lane-h">
+                <div class="lane-title"><span class="lane-dot"></span>Этап 2 — Бетонные изделия + асфальтирование 8100 м²</div>
+                <div class="lane-meta">Всего: 23 км</div>
+              </div>
+              <div class="chartbox"><canvas id="road2"></canvas></div>
+            </div>
+
+            <div class="lane" style="--laneColor: var(--c3); --laneRgb: 255,211,106;">
+              <div class="lane-h">
+                <div class="lane-title"><span class="lane-dot"></span>Этап 3 — Асфальтирование 23 км</div>
+                <div class="lane-meta">Всего: 23 км</div>
+              </div>
+              <div class="chartbox"><canvas id="road3"></canvas></div>
+            </div>
+          </div>
+
+          <div class="note" role="note">
+            <div class="ico">i</div>
+            <div>
+              <div><strong>Стартовая инвестиция</strong> (стартовый капитал) покрывает <strong id="capMonths">—</strong> для <strong>Слоя 1</strong> при текущем темпе.</div>
+              <div style="margin-top:4px">Правило расчёта: пока накопленные расходы ≤ $400,000.</div>
+            </div>
+          </div>
+
+          <div class="legendRow">
+            <div class="litem"><span class="sw line" style="--sw: var(--cBase)"></span>Базовая линия 23 км</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="card">
+          <div class="card-h">
+            <div class="hgroup">
+              <h2>Денежный поток проекта</h2>
+              <p>Combo: In/Out (столбцы) + Balance (линия) — на одной шкале</p>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="chartbox" style="height:420px"><canvas id="cashCombo"></canvas></div>
+            <div class="legendRow">
+              <div class="litem"><span class="sw" style="--sw: var(--cIn)"></span>Поступления (In)</div>
+              <div class="litem"><span class="sw" style="--sw: var(--cOut)"></span>Расходы (Out)</div>
+              <div class="litem"><span class="sw line" style="--sw: var(--cBal)"></span>Баланс (Balance)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card small">
+          <div class="card-h">
+            <div class="hgroup">
+              <h2>Километры по месяцам</h2>
+              <p>План по этапам (км/месяц)</p>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="chartbox"><canvas id="kmMonthly"></canvas></div>
+            <div class="legendRow" style="justify-content:flex-start">
+              <div class="litem"><span class="sw" style="--sw: var(--c1)"></span>Слой 1</div>
+              <div class="litem"><span class="sw" style="--sw: var(--c2)"></span>Слой 2</div>
+              <div class="litem"><span class="sw" style="--sw: var(--c3)"></span>Слой 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    // ===== Inputs (fixed) =====
+    const monthsFull = ['Январь','Февраль','Март','Апрель','Май','Июн','Июл','Август','Сентябрь','Октябрь','Ноябрь','Декабрь','Январь'];
+    const stage1 = [1,1,1,1,2,2,2,2,2,2,2,3,2];
+    const stage2 = [0,1,1,1,1,2,2,2,2,2,2,4,3];
+    const stage3 = [0,0,1,1,1,1,1,2,2,3,3,2,6];
+
+    const cashFlowData = {
+      dates: [
+        '10.01.2026','30.01.2026','28.02.2026','30.03.2026','31.03.2026','29.04.2026','30.04.2026','30.05.2026','31.05.2026','29.06.2026',
+        '30.06.2026','30.07.2026','31.07.2026','30.08.2026','31.08.2026','29.09.2026','30.09.2026','30.10.2026','31.10.2026','29.11.2026',
+        '30.11.2026','30.12.2026','31.12.2026','30.01.2027','31.01.2027','27.02.2027','28.02.2027'
+      ],
+      inflow: [
+        400000,0,0,0,219258,0,359583,0,359583,0,
+        414910,0,523514,0,523514,0,719167,0,719167,0,
+        914819,0,914819,0,991702,0,1210379
+      ],
+      outflow: [
+        0,37622,111473,174914,24231,247857,42273,282139,42273,352649,
+        54248,355990,69529,426112,79529,489033,112982,559155,124546,622077,
+        159563,730598,159563,846711,497900,387552,1279895
+      ],
+      balance: [
+        400000,362378,250904,75990,271017,23160,340471,58331,375642,22992,
+        383655,27665,481650,55538,499524,10490,616675,57520,652140,30063,
+        785319,54721,809977,-36734,457067,69516,0
+      ]
+    };
+
+    function fmt$(v){
+      const sign = v < 0 ? '-' : '';
+      const abs = Math.abs(v);
+      return sign + '$' + abs.toLocaleString('en-US');
+    }
+
+    // Theme toggle
+    function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    function initTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved === 'light' || saved === 'dark') applyTheme(saved);
+    }
+    document.getElementById('toggleMode').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+      rebuildCharts();
+    });
+
+    // KPI order (as requested)
+    function renderKPIs(){
+      const kpis = [
+        { title:'ОБЩАЯ ВЫРУЧКА', value:'$8,270,415', subtitle:'Сумма «Поступление от заказчика»', glow:'56,189,248' },
+        { title:'Общая протяженность', value:'23 км', subtitle:'Длина дороги', glow:'85,215,255' },
+        { title:'Длительность', value:'13 месяцев', subtitle:'Период реализации', glow:'107,255,179' },
+        { title:'СТАРТОВЫЙ КАПИТАЛ', value:'$400,000', subtitle:'', glow:'249,115,22' },
+        { title:'Срок возврата инвестору', value:'13 месяцев', subtitle:'Инвестор возвращает $400,000', glow:'52,211,153' },
+        { title:'Прибыль проекта', value:'$1,000,000', subtitle:'Чистая прибыль', glow:'167,139,250', badge:true }
+      ];
+      const el = document.getElementById('kpiGrid');
+      el.innerHTML = kpis.map(k => `
+        <div class="kpi ${k.badge ? 'badge' : ''}" style="--glow:${k.glow}">
+          <div class="t">${k.title}</div>
+          <div class="v">${k.value}</div>
+          ${k.subtitle ? `<div class="s">${k.subtitle}</div>` : ``}
+        </div>
+      `).join('');
+    }
+
+    // ===== Step series (X = month index, Y = cumulative km) =====
+    function cumulative(arr){
+      const out=[]; let t=0;
+      for(let i=0;i<arr.length;i++){ t += (arr[i]||0); out.push(t); }
+      return out;
+    }
+    function stepSeries(monthly){
+      const cum = cumulative(monthly);
+      const pts=[];
+      pts.push({x:1, y:0});
+      for(let i=0;i<cum.length;i++){
+        const m = i+1;
+        const y = cum[i];
+        pts.push({x:m, y:y});
+        if(i < cum.length-1) pts.push({x:m+1, y:y});
+      }
+      return pts;
+    }
+
+    // Plugin: baseline y=23
+    function baselineY23(){
+      return {
+        id:'baselineY23',
+        afterDraw(chart){
+          const {ctx, chartArea, scales} = chart;
+          if(!chartArea) return;
+          const css = getComputedStyle(document.documentElement);
+          const baseCol = css.getPropertyValue('--cBase').trim();
+          const textCol = css.getPropertyValue('--text').trim();
+          const y = scales.y;
+          const x = scales.x;
+          const y23 = y.getPixelForValue(23);
+          const x1 = x.getPixelForValue(1);
+          const x13 = x.getPixelForValue(13);
+
+          ctx.save();
+          ctx.strokeStyle = baseCol;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([10,6]);
+          ctx.beginPath();
+          ctx.moveTo(x1, y23);
+          ctx.lineTo(x13, y23);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = textCol;
+          ctx.font = '950 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+          ctx.textAlign = 'right';
+          ctx.fillText('23 км', x13, y23 - 8);
+          ctx.restore();
+        }
+      };
+    }
+
+    function buildRoadLane(canvasId, color, monthValues, title){
+      const css = getComputedStyle(document.documentElement);
+      const txt = css.getPropertyValue('--text').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      const pts = stepSeries(monthValues);
+      const cum = cumulative(monthValues);
+      const baseline = baselineY23();
+
+      function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+
+      return new Chart(ctx,{
+        type:'line',
+        data:{
+          datasets:[
+            {
+              label:title,
+              data:pts,
+              parsing:false,
+              borderColor:color,
+              borderWidth:3,
+              pointRadius:0,
+              pointHitRadius:12,
+              tension:0,
+              fill:false
+            }
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          animation:{duration:450},
+          interaction:{mode:'nearest',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',bodyColor:'#fff',
+              padding:12,displayColors:false,
+              callbacks:{
+                title:(items)=>{
+                  const it = items[0];
+                  const mi = clamp(Math.round(it.parsed.x),1,13);
+                  return 'Месяц: ' + monthsFull[mi-1] + ' (№' + mi + ')';
+                },
+                label:(it)=>{
+                  const mi = clamp(Math.round(it.parsed.x),1,13);
+                  const v = (monthValues[mi-1]||0);
+                  const acc = cum[mi-1] ?? 0;
+                  return [
+                    'План за месяц: ' + v + ' км',
+                    'Накоплено: ' + acc + ' км'
+                  ];
+                }
+              }
+            }
+          },
+          scales:{
+            // Bottom X: months (period)
+            x:{
+              type:'linear',
+              min:1,max:13,
+              position:'bottom',
+              title:{display:true,text:'Период (месяцы: 1 → 13)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{
+                color:mut,
+                font:{weight:'850'},
+                stepSize:1,
+                callback:(v)=>{
+                  if(!Number.isInteger(v)) return '';
+                  const idx = v-1;
+                  const nm = monthsFull[idx] ? monthsFull[idx].slice(0,3) : '';
+                  return nm;
+                }
+              },
+              grid:{color:grid}
+            },
+            // Top X: cumulative km per month (same tick positions, different labels)
+            xKm:{
+              type:'linear',
+              min:1,max:13,
+              position:'top',
+              title:{display:true,text:'Накопленные километры (по этапу)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{
+                color:mut,
+                font:{weight:'850'},
+                stepSize:1,
+                callback:(v)=>{
+                  if(!Number.isInteger(v)) return '';
+                  const idx = v-1;
+                  const val = (idx < 0) ? 0 : (cum[idx] ?? 0);
+                  return val + ' км';
+                }
+              },
+              grid:{display:false}
+            },
+            y:{
+              type:'linear',
+              min:0,max:23,
+              title:{display:true,text:'Километры (0 → 23 км)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{color:mut,font:{weight:'800',size:11},callback:(v)=>v+' км'},
+              grid:{color:grid}
+            }
+          }
+        },
+        plugins:[baseline]
+      });
+    }
+
+    function buildCash(){
+      const css = getComputedStyle(document.documentElement);
+      const cIn = css.getPropertyValue('--cIn').trim();
+      const cOut = css.getPropertyValue('--cOut').trim();
+      const cBal = css.getPropertyValue('--cBal').trim();
+      const txt = css.getPropertyValue('--text').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const ctx = document.getElementById('cashCombo').getContext('2d');
+
+      const maxBar = Math.max(...cashFlowData.inflow, ...cashFlowData.outflow);
+      const maxBalAbs = Math.max(...cashFlowData.balance.map(v => Math.abs(v)));
+      const yMax = Math.max(maxBar, maxBalAbs);
+      const pad = Math.round(yMax * 0.12);
+      const suggestedMax = yMax + pad;
+
+      return new Chart(ctx, {
+        data:{
+          labels: cashFlowData.dates,
+          datasets:[
+            {
+              type:'bar',
+              label:'Поступления (In)',
+              data: cashFlowData.inflow,
+              backgroundColor: cIn + 'cc',
+              borderColor: cIn,
+              borderWidth: 1.8,
+              borderRadius: 7,
+              categoryPercentage: 0.72,
+              barPercentage: 0.92
+            },
+            {
+              type:'bar',
+              label:'Расходы (Out)',
+              data: cashFlowData.outflow,
+              backgroundColor: cOut + 'cc',
+              borderColor: cOut,
+              borderWidth: 1.8,
+              borderRadius: 7,
+              categoryPercentage: 0.72,
+              barPercentage: 0.92
+            },
+            {
+              type:'line',
+              label:'Баланс (Balance)',
+              data: cashFlowData.balance,
+              borderColor: cBal,
+              backgroundColor: cBal + '14',
+              borderWidth: 3,
+              tension: 0.35,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: cBal,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              fill: false,
+              order: 0
+            }
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',
+              bodyColor:'#fff',
+              padding:12,
+              displayColors:true,
+              callbacks:{
+                title:(c)=>'Дата: ' + cashFlowData.dates[c[0].dataIndex],
+                label:(c)=>{
+                  const i = c.dataIndex;
+                  if(c.dataset.label.includes('In')) return 'Поступления: ' + fmt$(cashFlowData.inflow[i]);
+                  if(c.dataset.label.includes('Out')) return 'Расходы: ' + fmt$(cashFlowData.outflow[i]);
+                  return 'Баланс: ' + fmt$(cashFlowData.balance[i]);
+                }
+              }
+            }
+          },
+          scales:{
+            x:{
+              ticks:{color:mut,font:{size:10,weight:'750'},maxRotation:50,minRotation:50},
+              grid:{color:grid}
+            },
+            y:{
+              beginAtZero:true,
+              suggestedMax:suggestedMax,
+              title:{display:true,text:'Поступления / Расходы / Баланс ($)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{color:mut,callback:(v)=>'$'+Number(v).toLocaleString('en-US')},
+              grid:{color:grid}
+            }
+          }
+        }
+      });
+    }
+
+    function buildMonthlyKm(){
+      const css = getComputedStyle(document.documentElement);
+      const c1 = css.getPropertyValue('--c1').trim();
+      const c2 = css.getPropertyValue('--c2').trim();
+      const c3 = css.getPropertyValue('--c3').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const ctx = document.getElementById('kmMonthly').getContext('2d');
+      return new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels: monthsFull.map(m => m.slice(0,3)),
+          datasets:[
+            {label:'Слой 1', data: stage1, backgroundColor: c1+'cc', borderColor:c1, borderWidth:1.4, borderRadius:7},
+            {label:'Слой 2', data: stage2, backgroundColor: c2+'cc', borderColor:c2, borderWidth:1.4, borderRadius:7},
+            {label:'Слой 3', data: stage3, backgroundColor: c3+'cc', borderColor:c3, borderWidth:1.4, borderRadius:7}
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',bodyColor:'#fff',padding:12,displayColors:true,
+              callbacks:{
+                title:(c)=>'Месяц: ' + monthsFull[c[0].dataIndex],
+                label:(c)=> c.dataset.label + ': ' + (c.raw || 0) + ' км'
+              }
+            }
+          },
+          scales:{
+            x:{ticks:{color:mut,font:{size:10,weight:'800'}},grid:{color:grid}},
+            y:{beginAtZero:true,ticks:{color:mut,callback:(v)=>v+' км'},grid:{color:grid}}
+          }
+        }
+      });
+    }
+
+    // Capital coverage note
+    function computeCapitalMonths(){
+      const capital = 400000;
+      function parseDate(s){
+        const [dd,mm,yyyy] = s.split('.').map(Number);
+        return new Date(yyyy, mm-1, dd);
+      }
+      const d0 = parseDate('01.01.2026');
+      const byMonth = new Array(13).fill(0);
+
+      for(let i=0;i<cashFlowData.dates.length;i++){
+        const d = parseDate(cashFlowData.dates[i]);
+        const mIdx = (d.getFullYear()-d0.getFullYear())*12 + (d.getMonth()-d0.getMonth());
+        if(mIdx>=0 && mIdx<13) byMonth[mIdx] += cashFlowData.outflow[i];
+      }
+
+      let cumOut = 0;
+      let monthsCovered = 0;
+      for(let i=0;i<byMonth.length;i++){
+        if(cumOut + byMonth[i] <= capital + 1e-9){
+          cumOut += byMonth[i];
+          monthsCovered = i + 1;
+        } else break;
+      }
+      return { monthsCovered };
+    }
+    function updateCapitalNote(){
+      const r = computeCapitalMonths();
+      document.getElementById('capMonths').textContent = r.monthsCovered + ' месяц(ев)';
+    }
+
+    // Charts lifecycle
+    let ch1=null, ch2=null, ch3=null, cash=null, km=null;
+
+    function destroyAll(){
+      [ch1,ch2,ch3,cash,km].forEach(ch=>{try{ch&&ch.destroy()}catch(e){}});
+      ch1=ch2=ch3=cash=km=null;
+    }
+
+    function rebuildCharts(){
+      destroyAll();
+      const css = getComputedStyle(document.documentElement);
+      const c1 = css.getPropertyValue('--c1').trim();
+      const c2 = css.getPropertyValue('--c2').trim();
+      const c3 = css.getPropertyValue('--c3').trim();
+
+      ch1 = buildRoadLane('road1', c1, stage1, 'Этап 1 — Подготовка основания');
+      ch2 = buildRoadLane('road2', c2, stage2, 'Этап 2 — Бетонные изделия');
+      ch3 = buildRoadLane('road3', c3, stage3, 'Этап 3 — Асфальтирование');
+
+      cash = buildCash();
+      km = buildMonthlyKm();
+    }
+
+    // Init
+    initTheme();
+    renderKPIs();
+    updateCapitalNote();
+    rebuildCharts();
+  </script>
+</body>
+</html>
