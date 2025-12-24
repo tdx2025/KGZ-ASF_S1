@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Дорожный проект — Дашборд</title>
+  <style>
+    :root{
+      --bg0:#0b1220;
+      --bg1:#0f172a;
+      --card:#111c2f;
+      --text:#e6eefc;
+      --muted:#9fb0c8;
+      --border:rgba(255,255,255,.08);
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+
+      --c1:#55d7ff;
+      --c2:#6bffb3;
+      --c3:#ffd36a;
+      --cBase:#e6eefc;
+
+      --cIn:#22c55e;
+      --cOut:#ef4444;
+      --cBal:#3b82f6;
+    }
+    [data-theme="light"]{
+      --bg0:#f5f8ff;
+      --bg1:#f8fafc;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#5b6b82;
+      --border:rgba(15,23,42,.10);
+      --shadow:0 18px 50px rgba(15,23,42,.10);
+      --cBase:#0f172a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,"Noto Sans","Liberation Sans",sans-serif;
+      background:radial-gradient(1200px 520px at 18% 8%, rgba(85,215,255,.14), transparent 62%),
+                 radial-gradient(900px 520px at 72% 10%, rgba(255,211,106,.10), transparent 60%),
+                 radial-gradient(900px 520px at 55% 0%, rgba(107,255,179,.10), transparent 60%),
+                 linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      min-height:100vh;
+      transition:background .25s,color .25s;
+    }
+    .wrap{max-width:1400px;margin:0 auto;padding:18px 18px 28px}
+    .top{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px 18px 16px;
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      backdrop-filter: blur(10px);
+    }
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(85,215,255,.85), rgba(107,255,179,.75));
+      box-shadow:0 10px 24px rgba(85,215,255,.18);
+      flex:0 0 auto;
+    }
+    .ttl{min-width:0}
+    .ttl h1{
+      font-size:22px;line-height:1.15;font-weight:950;letter-spacing:.2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .ttl p{color:var(--muted);font-size:14px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .actions{display:flex;gap:10px;flex:0 0 auto}
+    .btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      font-weight:850;
+      font-size:13px;
+      cursor:pointer;
+      transition:transform .15s, background .15s;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+    .kpis{grid-column:1 / -1;display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+    .kpi{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 16px 14px;
+      box-shadow:0 12px 36px rgba(0,0,0,.25);
+      min-height:110px;
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi:before{
+      content:"";
+      position:absolute;inset:-2px;
+      background:radial-gradient(450px 160px at 15% 10%, rgba(var(--glow),.18), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .kpi .t{font-size:12px;letter-spacing:.9px;font-weight:900;text-transform:uppercase;color:var(--muted)}
+    .kpi .v{font-size:34px;font-weight:950;letter-spacing:.2px;margin-top:10px}
+    .kpi .s{font-size:13px;color:var(--muted);margin-top:8px;max-width:40ch}
+    .kpi.badge{
+      background:linear-gradient(135deg, rgba(167,139,250,.95), rgba(149,120,255,.78));
+      border-color:rgba(255,255,255,.16);
+    }
+    .kpi.badge .t,.kpi.badge .s{color:rgba(255,255,255,.92)}
+    .kpi.badge .v{color:#fff}
+    .kpi.badge:before{opacity:.35}
+
+    .card{
+      grid-column:1 / -1;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .card-h{
+      padding:16px 16px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .card-h .hgroup h2{font-size:18px;font-weight:950;letter-spacing:.2px}
+    .card-h .hgroup p{color:var(--muted);font-size:13px;margin-top:6px}
+    .card-b{padding:14px 14px 16px}
+    .pillbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+    .pill{
+      display:flex;align-items:center;gap:10px;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      font-weight:850;
+      font-size:13px;
+      box-shadow:0 8px 22px rgba(0,0,0,.20);
+      cursor:pointer;
+      user-select:none;
+      transition:transform .12s, background .12s, opacity .12s;
+    }
+    .pill:hover{transform:translateY(-1px);background:rgba(255,255,255,.07)}
+    .pill.off{opacity:.55}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--dot);box-shadow:0 0 0 6px rgba(var(--dotRgb),.12)}
+    .chartbox{position:relative;height:430px}
+    .legendRow{
+      display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-end;
+      margin-top:10px;color:var(--muted);font-size:12px;font-weight:850;
+    }
+    .legendRow .litem{display:flex;align-items:center;gap:8px}
+    .sw{width:14px;height:10px;border-radius:3px;background:var(--sw);border:1px solid rgba(255,255,255,.15)}
+    .sw.line{height:3px;border-radius:999px}
+
+    .note{
+      margin-top:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:13px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .note strong{color:var(--text)}
+    .note .ico{
+      width:22px;height:22px;border-radius:8px;
+      background:rgba(85,215,255,.16);
+      border:1px solid rgba(85,215,255,.22);
+      flex:0 0 auto;
+      display:grid;place-items:center;
+      font-weight:950;color:rgba(85,215,255,.95);
+      margin-top:1px;
+    }
+
+    .two{
+      grid-column:1 / -1;
+      display:grid;
+      grid-template-columns:1.25fr .75fr;
+      gap:14px;
+    }
+    .card.small{grid-column:auto}
+    .card.small .chartbox{height:360px}
+
+    @media (max-width:1100px){
+      .kpis{grid-template-columns:repeat(3,1fr)}
+      .two{grid-template-columns:1fr}
+      .chartbox{height:400px}
+    }
+    @media (max-width:700px){
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .ttl h1{font-size:18px}
+      .ttl p{display:none}
+      .chartbox{height:380px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="ttl">
+          <h1>План-график дорожных работ — 3 слоя (ступенчатый прогресс)</h1>
+          <p>Данные: помесячный план в км по этапам • Срок: январь → январь (13 месяцев) • Длина: 23 км</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="toggleMode">🌓 Сменить тему</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="kpis" id="kpiGrid"></div>
+
+      <div class="card" id="roadCard">
+        <div class="card-h">
+          <div class="hgroup">
+            <h2>График прогресса работ — 3 слоя (ступенчатый прогресс)</h2>
+            <p>Ось X: км (0 → 23) • Ось Y: период (месяцы) • Оптимизировано: компактные дорожки + читаемые подписи месяцев</p>
+          </div>
+        </div>
+        <div class="card-b">
+          <div class="pillbar" aria-label="Легенда слоев (клик — включить/выключить)" id="pillBar">
+            <div class="pill" data-ds="0"><span class="dot" style="--dot: var(--c1); --dotRgb: 85,215,255"></span>Этап 1 — Подготовка основания</div>
+            <div class="pill" data-ds="1"><span class="dot" style="--dot: var(--c2); --dotRgb: 107,255,179"></span>Этап 2 — Бетонные изделия</div>
+            <div class="pill" data-ds="2"><span class="dot" style="--dot: var(--c3); --dotRgb: 255,211,106"></span>Этап 3 — Асфальтирование</div>
+          </div>
+
+          <div class="chartbox"><canvas id="roadStep"></canvas></div>
+
+          <div class="note" id="capNote" role="note">
+            <div class="ico">i</div>
+            <div>
+              <div><strong>Стартовая инвестиция</strong> (стартовый капитал) покрывает <strong id="capMonths">—</strong> для <strong>Слоя 1</strong> при текущем темпе.</div>
+              <div style="margin-top:4px">Правило расчёта: пока накопленные расходы ≤ $400,000.</div>
+            </div>
+          </div>
+
+          <div class="legendRow">
+            <div class="litem"><span class="sw line" style="--sw: var(--cBase)"></span>Базовая линия 23 км</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="card" style="grid-column:auto;">
+          <div class="card-h">
+            <div class="hgroup">
+              <h2>Денежный поток проекта</h2>
+              <p>Combo: In/Out (столбцы) + Balance (линия) — на одной шкале</p>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="chartbox" style="height:420px"><canvas id="cashCombo"></canvas></div>
+            <div class="legendRow">
+              <div class="litem"><span class="sw" style="--sw: var(--cIn)"></span>Поступления (In)</div>
+              <div class="litem"><span class="sw" style="--sw: var(--cOut)"></span>Расходы (Out)</div>
+              <div class="litem"><span class="sw line" style="--sw: var(--cBal)"></span>Баланс (Balance)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card small">
+          <div class="card-h">
+            <div class="hgroup">
+              <h2>Километры по месяцам</h2>
+              <p>План по этапам (км/месяц)</p>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="chartbox"><canvas id="kmMonthly"></canvas></div>
+            <div class="legendRow" style="justify-content:flex-start">
+              <div class="litem"><span class="sw" style="--sw: var(--c1)"></span>Слой 1</div>
+              <div class="litem"><span class="sw" style="--sw: var(--c2)"></span>Слой 2</div>
+              <div class="litem"><span class="sw" style="--sw: var(--c3)"></span>Слой 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    // ===== Inputs (fixed) =====
+    const monthsFull = ['Январь','Февраль','Март','Апрель','Май','Июн','Июл','Август','Сентябрь','Октябрь','Ноябрь','Декабрь','Январь'];
+    const stage1 = [1,1,1,1,2,2,2,2,2,2,2,3,2];
+    const stage2 = [0,1,1,1,1,2,2,2,2,2,2,4,3];
+    const stage3 = [0,0,1,1,1,1,1,2,2,3,3,2,6];
+
+    const cashFlowData = {
+      dates: [
+        '10.01.2026','30.01.2026','28.02.2026','30.03.2026','31.03.2026','29.04.2026','30.04.2026','30.05.2026','31.05.2026','29.06.2026',
+        '30.06.2026','30.07.2026','31.07.2026','30.08.2026','31.08.2026','29.09.2026','30.09.2026','30.10.2026','31.10.2026','29.11.2026',
+        '30.11.2026','30.12.2026','31.12.2026','30.01.2027','31.01.2027','27.02.2027','28.02.2027'
+      ],
+      inflow: [
+        400000,0,0,0,219258,0,359583,0,359583,0,
+        414910,0,523514,0,523514,0,719167,0,719167,0,
+        914819,0,914819,0,991702,0,1210379
+      ],
+      outflow: [
+        0,37622,111473,174914,24231,247857,42273,282139,42273,352649,
+        54248,355990,69529,426112,79529,489033,112982,559155,124546,622077,
+        159563,730598,159563,846711,497900,387552,1279895
+      ],
+      balance: [
+        400000,362378,250904,75990,271017,23160,340471,58331,375642,22992,
+        383655,27665,481650,55538,499524,10490,616675,57520,652140,30063,
+        785319,54721,809977,-36734,457067,69516,0
+      ]
+    };
+
+    function fmt$(v){
+      const sign = v < 0 ? '-' : '';
+      const abs = Math.abs(v);
+      return sign + '$' + abs.toLocaleString('en-US');
+    }
+
+    // Theme toggle
+    function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    function initTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved === 'light' || saved === 'dark') applyTheme(saved);
+    }
+    document.getElementById('toggleMode').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+      rebuildCharts();
+    });
+
+    // KPI order
+    function renderKPIs(){
+      const kpis = [
+        { title:'ОБЩАЯ ВЫРУЧКА', value:'$8,270,415', subtitle:'Сумма «Поступление от заказчика»', glow:'56,189,248' },
+        { title:'Общая протяженность', value:'23 км', subtitle:'Длина дороги', glow:'85,215,255' },
+        { title:'Длительность', value:'13 месяцев', subtitle:'Период реализации', glow:'107,255,179' },
+        { title:'СТАРТОВЫЙ КАПИТАЛ', value:'$400,000', subtitle:'', glow:'249,115,22' },
+        { title:'Срок возврата инвестору', value:'13 месяцев', subtitle:'Инвестор возвращает $400,000', glow:'52,211,153' },
+        { title:'Прибыль проекта', value:'$1,000,000', subtitle:'Чистая прибыль', glow:'167,139,250', badge:true }
+      ];
+      const el = document.getElementById('kpiGrid');
+      el.innerHTML = kpis.map(k => `
+        <div class="kpi ${k.badge ? 'badge' : ''}" style="--glow:${k.glow}">
+          <div class="t">${k.title}</div>
+          <div class="v">${k.value}</div>
+          ${k.subtitle ? `<div class="s">${k.subtitle}</div>` : ``}
+        </div>
+      `).join('');
+    }
+
+    // ===== Optimized Road Chart geometry =====
+    // Improvements:
+    // 1) More compact lanes (smaller gap)
+    // 2) Clear Y tick labels repeated on each lane (month labels on 3 lanes)
+    // 3) Labels drawn as fixed left "lane headers" (not overlapping steps)
+    // 4) Better grid/axis: y is categorical-ish with repeated labels; x is 0..23 km
+    function buildRoadGeometry(){
+      const laneGap = 1.0;             // tighter
+      const laneBlock = monthsFull.length + laneGap;
+      const lane1Base = 0;
+      const lane2Base = laneBlock;
+      const lane3Base = laneBlock * 2;
+
+      function stepPolyline(monthValues, laneBase){
+        const pts = [];
+        let x = 0;
+        // start at month 0
+        pts.push({x:0, y: laneBase + 0});
+        for(let i=0;i<monthsFull.length;i++){
+          const dx = monthValues[i] || 0;
+          const newX = x + dx;
+          // horizontal
+          pts.push({x:newX, y: laneBase + i});
+          // vertical down
+          if(i < monthsFull.length - 1) pts.push({x:newX, y: laneBase + (i+1)});
+          x = newX;
+        }
+        return pts;
+      }
+
+      return {
+        laneGap, laneBlock,
+        lane1Base, lane2Base, lane3Base,
+        d1: stepPolyline(stage1, lane1Base),
+        d2: stepPolyline(stage2, lane2Base),
+        d3: stepPolyline(stage3, lane3Base),
+      };
+    }
+
+    // Plugin: baseline + lane headers + lane separators
+    const roadOptimDecor = {
+      id:'roadOptimDecor',
+      afterDraw(chart, args, opts){
+        const {ctx, chartArea, scales} = chart;
+        if(!chartArea) return;
+        const x = scales.x;
+        const y = scales.y;
+
+        const css = getComputedStyle(document.documentElement);
+        const baseCol = css.getPropertyValue('--cBase').trim();
+        const textCol = css.getPropertyValue('--text').trim();
+        const borderCol = css.getPropertyValue('--border').trim();
+
+        const geom = opts.geom;
+        if(!geom) return;
+
+        ctx.save();
+
+        // Lane separators (subtle)
+        ctx.strokeStyle = borderCol;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6,6]);
+        const sep1 = y.getPixelForValue(geom.lane2Base - geom.laneGap/2);
+        const sep2 = y.getPixelForValue(geom.lane3Base - geom.laneGap/2);
+        ctx.beginPath(); ctx.moveTo(chartArea.left, sep1); ctx.lineTo(chartArea.right, sep1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(chartArea.left, sep2); ctx.lineTo(chartArea.right, sep2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Baseline at bottom (23 km)
+        const x0 = x.getPixelForValue(0);
+        const x23 = x.getPixelForValue(23);
+        const yBottom = chartArea.bottom - 10;
+
+        ctx.strokeStyle = baseCol;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10,6]);
+        ctx.beginPath();
+        ctx.moveTo(x0, yBottom);
+        ctx.lineTo(x23, yBottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = textCol;
+        ctx.font = '950 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText('23 км', x23, yBottom - 10);
+
+        // Lane header badges on the left, fixed and non-overlapping
+        const left = chartArea.left + 10;
+        const boxW = Math.min(560, chartArea.width - 20);
+        const boxH = 26;
+        const padY = 10;
+
+        const headers = [
+          {text:'Этап 1 — Подготовка основания', fill:'rgba(85,215,255,.12)', stroke:'rgba(85,215,255,.22)'},
+          {text:'Этап 2 — Бетонные изделия + асфальтирование 8100 м²', fill:'rgba(107,255,179,.10)', stroke:'rgba(107,255,179,.20)'},
+          {text:'Этап 3 — Асфальтирование 23 км', fill:'rgba(255,211,106,.10)', stroke:'rgba(255,211,106,.20)'}
+        ];
+        const y1 = y.getPixelForValue(geom.lane1Base + 0) - boxH - padY;
+        const y2 = y.getPixelForValue(geom.lane2Base + 0) - boxH - padY;
+        const y3 = y.getPixelForValue(geom.lane3Base + 0) - boxH - padY;
+
+        [y1,y2,y3].forEach((yy, idx) => {
+          const l = headers[idx];
+          ctx.fillStyle = l.fill;
+          ctx.strokeStyle = l.stroke;
+          ctx.lineWidth = 1;
+          roundRect(ctx, left, yy, boxW, boxH, 10);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = textCol;
+          ctx.font = '900 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText(l.text, left + 10, yy + 17);
+        });
+
+        ctx.restore();
+
+        function roundRect(c,x,y,w,h,r){
+          c.beginPath();
+          c.moveTo(x+r,y);
+          c.arcTo(x+w,y,x+w,y+h,r);
+          c.arcTo(x+w,y+h,x,y+h,r);
+          c.arcTo(x,y+h,x,y,r);
+          c.arcTo(x,y,x+w,y,r);
+          c.closePath();
+        }
+      }
+    };
+
+    // ===== Charts =====
+    let roadChart, cashChart, kmChart;
+
+    function buildRoadChart(){
+      const css = getComputedStyle(document.documentElement);
+      const c1 = css.getPropertyValue('--c1').trim();
+      const c2 = css.getPropertyValue('--c2').trim();
+      const c3 = css.getPropertyValue('--c3').trim();
+      const txt = css.getPropertyValue('--text').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const geom = buildRoadGeometry();
+      const ctx = document.getElementById('roadStep').getContext('2d');
+
+      // Y scale: repeat month labels for each lane block
+      const yMin = -0.8;
+      const yMax = (geom.laneBlock * 3) - geom.laneGap + 0.2;
+
+      roadChart = new Chart(ctx, {
+        type:'line',
+        data:{
+          datasets:[
+            {label:'Этап 1 — Подготовка основания', data:geom.d1, parsing:false, borderColor:c1, borderWidth:3, pointRadius:0, pointHitRadius:10, tension:0, fill:false},
+            {label:'Этап 2 — Бетонные изделия', data:geom.d2, parsing:false, borderColor:c2, borderWidth:3, pointRadius:0, pointHitRadius:10, tension:0, fill:false},
+            {label:'Этап 3 — Асфальтирование', data:geom.d3, parsing:false, borderColor:c3, borderWidth:3, pointRadius:0, pointHitRadius:10, tension:0, fill:false}
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          animation:{duration:550},
+          interaction:{mode:'nearest',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',bodyColor:'#fff',padding:12,displayColors:true,
+              callbacks:{
+                title:(items)=>{
+                  const it = items[0];
+                  const info = locateMonthLane(it.parsed.y, geom);
+                  const monthName = monthsFull[info.mi];
+                  return 'Период: ' + monthName + ' • Км: ' + Math.round(it.parsed.x) + ' км';
+                },
+                label:(it)=>{
+                  const info = locateMonthLane(it.parsed.y, geom);
+                  const mi = info.mi;
+                  const monthName = monthsFull[mi];
+                  return [
+                    it.dataset.label,
+                    'Месяц: ' + monthName,
+                    'Слой 1: ' + (stage1[mi]||0) + ' км',
+                    'Слой 2: ' + (stage2[mi]||0) + ' км',
+                    'Слой 3: ' + (stage3[mi]||0) + ' км'
+                  ];
+                }
+              }
+            },
+            roadOptimDecor:{ geom }
+          },
+          scales:{
+            x:{
+              type:'linear',
+              min:0, max:23,
+              title:{display:true,text:'Километры (0 → 23 км)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{
+                color:mut,
+                font:{weight:'850'},
+                stepSize:5,
+                callback:(v)=>v+' км'
+              },
+              grid:{color:grid}
+            },
+            y:{
+              type:'linear',
+              min:yMin, max:yMax,
+              reverse:false,
+              title:{display:true,text:'Период (месяцы)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{
+                color:mut,
+                font:{weight:'800',size:11},
+                callback:(v)=>{
+                  const iv = Math.round(v);
+                  if(Math.abs(v-iv) > 1e-6) return '';
+                  const m = monthIndexFromGlobal(iv, geom);
+                  if(m === null) return '';
+                  return monthsFull[m];
+                }
+              },
+              grid:{color:grid}
+            }
+          }
+        },
+        plugins:[roadOptimDecor]
+      });
+
+      function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+      function monthIndexFromGlobal(gi, g){
+        // Map global integer y to month index within a lane, if on a month line
+        // lane blocks start at base: 0, laneBlock, laneBlock*2
+        const bases = [g.lane1Base, g.lane2Base, g.lane3Base];
+        for(const b of bases){
+          const m = gi - b;
+          if(m>=0 && m<monthsFull.length) return m;
+        }
+        return null;
+      }
+      function locateMonthLane(yv, g){
+        const bases = [g.lane1Base, g.lane2Base, g.lane3Base];
+        let best = {lane:1, mi:0, dist:Infinity};
+        bases.forEach((b, idx)=>{
+          const mi = clamp(Math.round(yv - b), 0, monthsFull.length-1);
+          const dist = Math.abs(yv - (b + mi));
+          if(dist < best.dist) best = {lane:idx+1, mi, dist};
+        });
+        return best;
+      }
+    }
+
+    function buildCash(){
+      const css = getComputedStyle(document.documentElement);
+      const cIn = css.getPropertyValue('--cIn').trim();
+      const cOut = css.getPropertyValue('--cOut').trim();
+      const cBal = css.getPropertyValue('--cBal').trim();
+      const txt = css.getPropertyValue('--text').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const ctx = document.getElementById('cashCombo').getContext('2d');
+
+      const maxBar = Math.max(...cashFlowData.inflow, ...cashFlowData.outflow);
+      const maxBalAbs = Math.max(...cashFlowData.balance.map(v => Math.abs(v)));
+      const yMax = Math.max(maxBar, maxBalAbs);
+      const pad = Math.round(yMax * 0.12);
+      const suggestedMax = yMax + pad;
+
+      cashChart = new Chart(ctx, {
+        data:{
+          labels: cashFlowData.dates,
+          datasets:[
+            {
+              type:'bar',
+              label:'Поступления (In)',
+              data: cashFlowData.inflow,
+              backgroundColor: cIn + 'cc',
+              borderColor: cIn,
+              borderWidth: 1.8,
+              borderRadius: 7,
+              yAxisID: 'y',
+              categoryPercentage: 0.72,
+              barPercentage: 0.92
+            },
+            {
+              type:'bar',
+              label:'Расходы (Out)',
+              data: cashFlowData.outflow,
+              backgroundColor: cOut + 'cc',
+              borderColor: cOut,
+              borderWidth: 1.8,
+              borderRadius: 7,
+              yAxisID: 'y',
+              categoryPercentage: 0.72,
+              barPercentage: 0.92
+            },
+            {
+              type:'line',
+              label:'Баланс (Balance)',
+              data: cashFlowData.balance,
+              borderColor: cBal,
+              backgroundColor: cBal + '14',
+              borderWidth: 3,
+              tension: 0.35,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: cBal,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              fill: false,
+              yAxisID: 'y',
+              order: 0
+            }
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',
+              bodyColor:'#fff',
+              padding:12,
+              displayColors:true,
+              callbacks:{
+                title:(c)=>'Дата: ' + cashFlowData.dates[c[0].dataIndex],
+                label:(c)=>{
+                  const i = c.dataIndex;
+                  if(c.dataset.label.includes('In')) return 'Поступления: ' + fmt$(cashFlowData.inflow[i]);
+                  if(c.dataset.label.includes('Out')) return 'Расходы: ' + fmt$(cashFlowData.outflow[i]);
+                  return 'Баланс: ' + fmt$(cashFlowData.balance[i]);
+                }
+              }
+            }
+          },
+          scales:{
+            x:{
+              ticks:{color:mut,font:{size:10,weight:'750'},maxRotation:50,minRotation:50},
+              grid:{color:grid}
+            },
+            y:{
+              beginAtZero:true,
+              suggestedMax:suggestedMax,
+              title:{display:true,text:'Поступления / Расходы / Баланс ($)',color:txt,font:{size:12,weight:'900'}},
+              ticks:{color:mut,callback:(v)=>'$'+Number(v).toLocaleString('en-US')},
+              grid:{color:grid}
+            }
+          }
+        }
+      });
+    }
+
+    function buildMonthlyKm(){
+      const css = getComputedStyle(document.documentElement);
+      const c1 = css.getPropertyValue('--c1').trim();
+      const c2 = css.getPropertyValue('--c2').trim();
+      const c3 = css.getPropertyValue('--c3').trim();
+      const mut = css.getPropertyValue('--muted').trim();
+      const grid = css.getPropertyValue('--border').trim();
+
+      const ctx = document.getElementById('kmMonthly').getContext('2d');
+      kmChart = new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels: monthsFull.map(m => m.slice(0,3)),
+          datasets:[
+            {label:'Слой 1', data: stage1, backgroundColor: c1+'cc', borderColor:c1, borderWidth:1.4, borderRadius:7},
+            {label:'Слой 2', data: stage2, backgroundColor: c2+'cc', borderColor:c2, borderWidth:1.4, borderRadius:7},
+            {label:'Слой 3', data: stage3, backgroundColor: c3+'cc', borderColor:c3, borderWidth:1.4, borderRadius:7}
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(0,0,0,.9)',
+              titleColor:'#fff',bodyColor:'#fff',padding:12,displayColors:true,
+              callbacks:{
+                title:(c)=>'Месяц: ' + monthsFull[c[0].dataIndex],
+                label:(c)=> c.dataset.label + ': ' + (c.raw || 0) + ' км'
+              }
+            }
+          },
+          scales:{
+            x:{ticks:{color:mut,font:{size:10,weight:'800'}},grid:{color:grid}},
+            y:{beginAtZero:true,ticks:{color:mut,callback:(v)=>v+' км'},grid:{color:grid}}
+          }
+        }
+      });
+    }
+
+    // Capital coverage note (same logic)
+    function computeCapitalMonths(){
+      const capital = 400000;
+      function parseDate(s){
+        const [dd,mm,yyyy] = s.split('.').map(Number);
+        return new Date(yyyy, mm-1, dd);
+      }
+      const d0 = parseDate('01.01.2026');
+      const byMonth = new Array(13).fill(0);
+
+      for(let i=0;i<cashFlowData.dates.length;i++){
+        const d = parseDate(cashFlowData.dates[i]);
+        const mIdx = (d.getFullYear()-d0.getFullYear())*12 + (d.getMonth()-d0.getMonth());
+        if(mIdx>=0 && mIdx<13) byMonth[mIdx] += cashFlowData.outflow[i];
+      }
+
+      let cumOut = 0;
+      let monthsCovered = 0;
+      for(let i=0;i<byMonth.length;i++){
+        if(cumOut + byMonth[i] <= capital + 1e-9){
+          cumOut += byMonth[i];
+          monthsCovered = i + 1;
+        } else break;
+      }
+      return { monthsCovered };
+    }
+    function updateCapitalNote(){
+      const r = computeCapitalMonths();
+      document.getElementById('capMonths').textContent = r.monthsCovered + ' месяц(ев)';
+    }
+
+    // Toggle datasets in road chart by clicking pills
+    function wirePills(){
+      const bar = document.getElementById('pillBar');
+      bar.addEventListener('click', (e)=>{
+        const pill = e.target.closest('.pill');
+        if(!pill || !roadChart) return;
+        const idx = Number(pill.getAttribute('data-ds'));
+        const meta = roadChart.getDatasetMeta(idx);
+        meta.hidden = meta.hidden === null ? !roadChart.data.datasets[idx].hidden : null;
+        const nowHidden = roadChart.isDatasetVisible(idx) === false;
+        pill.classList.toggle('off', nowHidden);
+        roadChart.update('none');
+      });
+    }
+
+    function destroyAll(){
+      if(roadChart){ roadChart.destroy(); roadChart=null; }
+      if(cashChart){ cashChart.destroy(); cashChart=null; }
+      if(kmChart){ kmChart.destroy(); kmChart=null; }
+    }
+    function rebuildCharts(){
+      destroyAll();
+      buildRoadChart();
+      buildCash();
+      buildMonthlyKm();
+      // reset pill states
+      document.querySelectorAll('#pillBar .pill').forEach(p => p.classList.remove('off'));
+    }
+
+    initTheme();
+    renderKPIs();
+    updateCapitalNote();
+    rebuildCharts();
+    wirePills();
+  </script>
+</body>
+</html>
+ 
